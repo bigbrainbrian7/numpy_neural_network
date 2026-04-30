@@ -1,3 +1,5 @@
+from typing import cast
+
 import numpy as np
 import pytest
 from layer import Linear, ReLU
@@ -250,15 +252,16 @@ def test_gradient_check_full_model():
     loss_fn.forward(model.forward(x))
     upstream = loss_fn.backward(y)
     model.backward(upstream)
-    analytical = model.layers[0].grad_weights[0, 0]
+    first_layer = cast(Linear, model.layers[0])
+    analytical = first_layer.grad_weights[0, 0]
  
     # numerical gradient
     eps = 1e-5
-    model.layers[0].weights[0, 0] += eps
+    first_layer.weights[0, 0] += eps
     loss_plus = compute_loss(model, loss_fn, x, y)
-    model.layers[0].weights[0, 0] -= 2 * eps
+    first_layer.weights[0, 0] -= 2 * eps
     loss_minus = compute_loss(model, loss_fn, x, y)
-    model.layers[0].weights[0, 0] += eps
+    first_layer.weights[0, 0] += eps
     numerical = (loss_plus - loss_minus) / (2 * eps)
  
     np.testing.assert_allclose(analytical, numerical, rtol=1e-4,
@@ -309,12 +312,13 @@ def test_model_step_updates_weights():
     x, y, _ = make_batch(4, 4, 3)
     loss_fn = SoftmaxCrossEntropyLoss()
  
-    weights_before = model.layers[0].weights.copy()
+    first_layer = cast(Linear, model.layers[0])
+    weights_before = first_layer.weights.copy()
     loss_fn.forward(model.forward(x))
     model.backward(loss_fn.backward(y))
     model.step(learning_rate=0.1)
  
-    assert not np.allclose(model.layers[0].weights, weights_before)
+    assert not np.allclose(first_layer.weights, weights_before)
  
 # ── training sanity check ─────────────────────────────────────────────────────
  

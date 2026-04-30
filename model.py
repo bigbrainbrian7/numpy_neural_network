@@ -1,11 +1,11 @@
 import numpy as np
 
-from typing import List
+from typing import Tuple
 from layer import Layer
 
 class Model:
-    def __init__(self, *layers: Layer):
-        self.layers = layers
+    def __init__(self, *layers):
+        self.layers: Tuple[Layer] = layers
 
     def forward(self, input):
         for layer in self.layers:
